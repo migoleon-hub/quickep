@@ -1,13 +1,6 @@
-from flask import Flask, jsonify
+from api import create_app
 
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return jsonify({
-        "message": "Welcome to FastKEP API",
-        "status": "online"
-    })
+app = create_app()
 
 if __name__ == '__main__':
     app.run()
