@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
-from api.models import User
+from api.models import User  # Αυτό είναι σημαντικό
 from api import db
 import jwt
 from datetime import datetime, timedelta
