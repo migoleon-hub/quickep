@@ -13,18 +13,18 @@ def create_app(config_class=Config):
     db.init_app(app)
     CORS(app)
     
-    # Register blueprints σταδιακά
+    # Register blueprints
     try:
-        from api.routes import main
-        app.register_blueprint(main.bp)
-    except ImportError:
+        from api.routes import main_bp, auth_bp
+        app.register_blueprint(main_bp)
+        app.register_blueprint(auth_bp)
+    except ImportError as e:
+        print(f"Error registering blueprints: {str(e)}")
         pass
         
-    # Τα υπόλοιπα blueprints θα τα ενεργοποιήσουμε
-    # μόλις έχουμε όλα τα απαραίτητα models και dependencies
+    # Το documents blueprint θα το προσθέσουμε αργότερα
     # try:
-    #     from api.routes import auth, documents
-    #     app.register_blueprint(auth.bp)
+    #     from api.routes import documents
     #     app.register_blueprint(documents.bp)
     # except ImportError:
     #     pass
