@@ -1,3 +1,4 @@
+# api/models/user.py
 from api import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,7 +14,6 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Για ασφάλεια, δε θέλουμε να αποθηκεύουμε plain text passwords
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')
