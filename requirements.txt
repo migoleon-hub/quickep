@@ -9,3 +9,6 @@ Flask-Migrate==4.0.5
 psycopg2-binary==2.9.9
 Flask-Limiter==3.5.0
 redis==5.0.1
+Jinja2==3.1.2
+pdfkit==1.0.0
+wkhtmltopdf-pack==0.12.6
