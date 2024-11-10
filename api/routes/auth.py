@@ -15,7 +15,6 @@ def create_token(user_id):
     }, current_app.config['SECRET_KEY'], algorithm='HS256')
 
 def token_required(f):
-    """Decorator για να προστατεύουμε τα endpoints που απαιτούν authentication"""
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
@@ -30,8 +29,10 @@ def token_required(f):
         try:
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
             current_user = User.query.get(data['user_id'])
-        except:
-            return jsonify({'message': 'Token is invalid'}), 401
+            if not current_user:
+                raise ValueError('User not found')
+        except Exception as e:
+            return jsonify({'message': 'Token is invalid', 'error': str(e)}), 401
             
         return f(current_user, *args, **kwargs)
     return decorated
