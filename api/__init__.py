@@ -21,12 +21,12 @@ def create_app(config_class=Config):
     except ImportError as e:
         print(f"Error registering blueprints: {str(e)}")
         pass
-        
-    # Το documents blueprint θα το προσθέσουμε αργότερα
-    # try:
-    #     from api.routes import documents
-    #     app.register_blueprint(documents.bp)
-    # except ImportError:
-    #     pass
-    
+
+    try:
+        from api.routes import documents
+        app.register_blueprint(documents.bp)
+    except ImportError:
+        pass
+
+
     return app
