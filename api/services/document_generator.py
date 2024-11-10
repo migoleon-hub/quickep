@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any
 from datetime import datetime
 import jinja2
-import pdfkit
-import os
+from weasyprint import HTML
+from io import BytesIO
 
 class DocumentTemplate(ABC):
     """Abstract base class for document templates"""
@@ -44,17 +44,11 @@ class YpefthiniDilosiTemplate(DocumentTemplate):
         # Render HTML
         html_content = self.template.render(**data)
         
-        # Convert to PDF
-        pdf_options = {
-            'page-size': 'A4',
-            'margin-top': '20mm',
-            'margin-right': '20mm',
-            'margin-bottom': '20mm',
-            'margin-left': '20mm',
-            'encoding': 'UTF-8',
-        }
+        # Convert to PDF using WeasyPrint
+        pdf_buffer = BytesIO()
+        HTML(string=html_content).write_pdf(pdf_buffer)
         
-        return pdfkit.from_string(html_content, False, options=pdf_options)
+        return pdf_buffer.getvalue()
 
 class DocumentGenerator:
     """Factory class for document generation"""
