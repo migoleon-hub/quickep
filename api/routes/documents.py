@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify, send_file
 from io import BytesIO
 from api.services.document_generator import document_generator
 from api.routes.auth import token_required
+from datetime import datetime
 
 bp = Blueprint('documents', __name__, url_prefix='/documents')
 
