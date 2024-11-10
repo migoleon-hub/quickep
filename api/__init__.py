@@ -2,13 +2,13 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from config import Config
+from config import config
 
 db = SQLAlchemy()
 
-def create_app(config_class=Config):
+def create_app(config_name='production'):  # Changed default to production
     app = Flask(__name__)
-    app.config.from_object(config_class)
+    app.config.from_object(config[config_name])
     
     # Initialize extensions
     db.init_app(app)
