@@ -1,68 +1,67 @@
-from flask import Blueprint, request, jsonify
-from api import db
+# api/routes/documents.py
+from flask import Blueprint, request, jsonify, send_file
+from io import BytesIO
+from api.services.document_generator import document_generator
 from api.routes.auth import token_required
-from datetime import datetime
 
 bp = Blueprint('documents', __name__, url_prefix='/documents')
 
-@bp.route('/', methods=['GET'])
+@bp.route('/generate/ypefthini-dilosi', methods=['POST'])
 @token_required
-def get_documents(current_user):
-    # Στο μέλλον θα τα παίρνουμε από τη βάση
-    docs = [
-        {
-            "type": "ypeythini_dilosi",
-            "name": "Υπεύθυνη Δήλωση",
-            "description": "Γενική φόρμα υπεύθυνης δήλωσης",
-            "templates": [
-                "Γενική Χρήση",
-                "Εξουσιοδότηση",
-                "Βεβαίωση Κατοικίας"
-            ]
-        },
-        {
-            "type": "bebaiosi_anergias",
-            "name": "Βεβαίωση Ανεργίας",
-            "description": "Αυτόματη λήψη βεβαίωσης ανεργίας",
-            "requirements": [
-                "ΑΜΚΑ",
-                "ΑΦΜ"
+def generate_ypefthini_dilosi(current_user):
+    """Generate Υπεύθυνη Δήλωση"""
+    try:
+        data = request.get_json()
+        
+        # Add user information from token
+        data.update({
+            'full_name': f"{current_user.first_name} {current_user.last_name}".strip(),
+        })
+        
+        # Generate PDF
+        pdf_content = document_generator.generate_document('ypefthini_dilosi', data)
+        
+        # Prepare response
+        buffer = BytesIO(pdf_content)
+        buffer.seek(0)
+        
+        filename = f"ypefthini_dilosi_{current_user.id}_{int(datetime.now().timestamp())}.pdf"
+        
+        return send_file(
+            buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': 'Document generation failed', 'details': str(e)}), 500
+
+@bp.route('/templates', methods=['GET'])
+@token_required
+def list_templates(current_user):
+    """List available document templates"""
+    templates = {
+        'ypefthini_dilosi': {
+            'name': 'Υπεύθυνη Δήλωση',
+            'description': 'Γενική φόρμα υπεύθυνης δήλωσης',
+            'required_fields': [
+                'father_name',
+                'mother_name',
+                'birth_date',
+                'id_number',
+                'address',
+                'content'
             ]
         }
-    ]
-    return jsonify(docs)
+    }
+    return jsonify(templates)
 
-@bp.route('/generate', methods=['POST'])
-@token_required
-def generate_document(current_user):
-    data = request.get_json()
-    
-    if not data or not data.get('type'):
-        return jsonify({'message': 'Missing document type'}), 400
-        
-    if data['type'] == 'ypeythini_dilosi':
-        # Εδώ θα μπει η λογική για τη δημιουργία υπεύθυνης δήλωσης
-        return jsonify({
-            'message': 'Document generated successfully',
-            'document_url': f'/documents/download/{datetime.now().timestamp()}',
-            'type': 'ypeythini_dilosi'
-        })
-    
-    elif data['type'] == 'bebaiosi_anergias':
-        # Εδώ θα μπει η λογική για τη λήψη βεβαίωσης ανεργίας
-        return jsonify({
-            'message': 'Document generated successfully',
-            'document_url': f'/documents/download/{datetime.now().timestamp()}',
-            'type': 'bebaiosi_anergias'
-        })
-    
-    return jsonify({'message': 'Invalid document type'}), 400
-
-@bp.route('/download/<timestamp>', methods=['GET'])
-@token_required
-def download_document(current_user, timestamp):
-    # Εδώ θα μπει η λογική για το download των εγγράφων
-    return jsonify({
-        'message': 'Document ready for download',
-        'timestamp': timestamp
-    })
+# Validation helper
+def validate_ypefthini_dilosi_data(data):
+    required = {'father_name', 'mother_name', 'birth_date', 'id_number', 'address', 'content'}
+    missing = required - set(data.keys())
+    if missing:
+        raise ValueError(f"Missing required fields: {', '.join(missing)}")
