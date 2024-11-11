@@ -1,38 +1,33 @@
-# api/__init__.py
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from config import config
 
 db = SQLAlchemy()
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["100 per hour"],
+    storage_uri="memory://"
+)
 
-def create_app(config_name='production'):  # Changed default to production
+def create_app(config_name='production'):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     
     # Initialize extensions
     db.init_app(app)
     CORS(app)
+    limiter.init_app(app)
     
     with app.app_context():
         # Register blueprints
-        try:
-            from api.routes import main_bp, auth_bp
-            app.register_blueprint(main_bp)
-            app.register_blueprint(auth_bp)
-        except ImportError as e:
-            print(f"Error registering main/auth blueprints: {str(e)}")
+        from api.routes import main_bp, auth_bp
+        app.register_blueprint(main_bp)
+        app.register_blueprint(auth_bp)
         
-        try:
-            from api.routes import documents
-            app.register_blueprint(documents.bp)
-        except ImportError as e:
-            print(f"Error registering documents blueprint: {str(e)}")
-            
         # Initialize database
-        try:
-            db.create_all()
-        except Exception as e:
-            print(f"Database initialization error: {str(e)}")
+        db.create_all()
             
     return app
