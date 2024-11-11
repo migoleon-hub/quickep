@@ -31,3 +31,28 @@ def create_app(config_name='production'):
         db.create_all()
             
     return app
+    
+def register_error_handlers(app):
+    @app.errorhandler(500)
+    def handle_500(error):
+        app.logger.error(f'Server error: {error}')
+        return jsonify({
+            'error': 'Internal server error',
+            'message': str(error)
+        }), 500
+
+    @app.errorhandler(503)
+    def handle_503(error):
+        app.logger.error(f'Service unavailable: {error}')
+        return jsonify({
+            'error': 'Service temporarily unavailable',
+            'message': 'The server is currently unable to handle the request'
+        }), 503
+
+    @app.errorhandler(Exception)
+    def handle_exception(error):
+        app.logger.error(f'Unhandled exception: {error}')
+        return jsonify({
+            'error': 'Unexpected error',
+            'message': str(error)
+        }), 500
